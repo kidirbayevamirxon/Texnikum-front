@@ -27,8 +27,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-[#0b0f14] text-white">
       <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 h-[520px] w-[520px] rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute -bottom-48 -right-48 h-[560px] w-[560px] rounded-full bg-cyan-500/10 blur-3xl" />
+        <div className="absolute -top-40 -left-40 _h-[520px] _w-[520px] rounded-full bg-emerald-500/10 blur-3xl" />
+        <div className="absolute -bottom-48 -right-48 _h-[560px] _w-[560px] rounded-full bg-cyan-500/10 blur-3xl" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.08),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(34,211,238,0.08),transparent_60%)]" />
       </div>
       <section className="relative z-10">
@@ -117,7 +117,7 @@ export default function Home() {
                 >
                   <div className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition group-hover:opacity-100">
                     <div className="absolute inset-0 rounded-3xl ring-1 ring-emerald-400/15" />
-                    <div className="absolute -inset-px rounded-3xl bg-gradient-to-br from-emerald-400/10 to-cyan-400/10 blur-xl" />
+                    <div className="absolute -inset-px rounded-3xl _bg-gradient-to-br from-emerald-400/10 to-cyan-400/10 blur-xl" />
                   </div>
                   {n.photo ? (
                     <img

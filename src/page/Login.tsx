@@ -62,7 +62,7 @@ useEffect(() => {
 
           <button
             type="submit"
-            className="mt-5 w-full rounded-xl bg-gradient-to-r from-emerald-500/80 to-cyan-500/70 px-4 py-3 text-sm font-semibold
+            className="mt-5 w-full rounded-xl _bg-gradient-to-r from-emerald-500/80 to-cyan-500/70 px-4 py-3 text-sm font-semibold
                        hover:opacity-95 transition"
             disabled={loading}
           >

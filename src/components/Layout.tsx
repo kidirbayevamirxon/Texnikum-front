@@ -14,7 +14,7 @@ export default function Layout() {
       <header className="relative z-10 border-b border-white/10 bg-black/30 backdrop-blur">
         <div className="ts-shell flex items-center justify-between py-4">
           <Link to="/" className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-400/80 to-cyan-400/80 p-[1px]">
+            <div className="h-9 w-9 rounded-xl _bg-gradient-to-br from-emerald-400/80 to-cyan-400/80 _p-[1px]">
               <div className="h-full w-full rounded-xl bg-[#0b0f14] grid place-items-center">
                 <span className="text-sm font-bold tracking-wide">TS</span>
               </div>
