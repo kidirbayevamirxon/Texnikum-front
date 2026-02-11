@@ -1,9 +1,14 @@
-import { Link, NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 
 const navItem = ({ isActive }: { isActive: boolean }) =>
   `text-sm transition ${isActive ? "text-white" : "text-white/70 hover:text-white"}`;
 
 export default function Layout() {
+  const navigate = useNavigate();
+    const handleLoginClick = () => {
+    localStorage.removeItem("access_token"); 
+    navigate("/login");
+  };
   return (
     <div className="ts-page">
       <div className="ts-bg">
@@ -30,7 +35,9 @@ export default function Layout() {
             <NavLink to="/employees" className={navItem}>Employees</NavLink>
             <NavLink to="/provisions" className={navItem}>Provisions</NavLink>
           </nav>
-          <Link to="/login" className="ts-btn">Login</Link>
+          <button onClick={handleLoginClick} className="ts-btn">
+      Login
+    </button>
         </div>
       </header>
     <main className="relative z-10">

@@ -1,22 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
-import { getNews } from "../services/news";
-
-interface NewsItem {
-  id: number;
-  description: string;
-  photo?: string;
-  created_date: string;
-}
-
+import { getNews, createNews, updateNews, deleteNews } from "../services/news";
+import type { NewsItem } from "../services/news";
 export default function Home() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingNews, setEditingNews] = useState<NewsItem | null>(null);
+  const [formData, setFormData] = useState({ description: "", photo: "" });
 
   useEffect(() => {
-    getNews()
-      .then((res) => setNews(res.data))
-      .finally(() => setLoading(false));
+    const token = localStorage.getItem("access_token");
+    setIsAuthenticated(!!token);
   }, []);
+
+  useEffect(() => {
+    loadNews();
+  }, []);
+
+  const loadNews = async () => {
+    try {
+      const res = await getNews();
+      setNews(res.data);
+    } catch (error) {
+      console.error("Yangiliklarni yuklashda xatolik:");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const sortedNews = useMemo(() => {
     return [...news].sort(
@@ -24,13 +35,137 @@ export default function Home() {
     );
   }, [news]);
 
+  const handleCreateNews = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      alert("Faqat adminlar yangilik qo'sha oladi");
+      return;
+    }
+
+    try {
+      await createNews(formData);
+      await loadNews();
+      setShowCreateModal(false);
+      setFormData({ description: "", photo: "" });
+    } catch (error) {
+      alert("Yangilik qo'shishda xatolik yuz berdi");
+    }
+  };
+
+  const handleUpdateNews = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated || !editingNews) return;
+
+    try {
+      await updateNews(editingNews.id, formData);
+      await loadNews();
+      setEditingNews(null);
+      setFormData({ description: "", photo: "" });
+    } catch (error) {
+      console.error("Yangilikni tahrirlashda xatolik:");
+      alert("Yangilikni tahrirlashda xatolik yuz berdi");
+    }
+  };
+
+  const handleDeleteNews = async (id: number) => {
+    if (!isAuthenticated) {
+      alert("Faqat adminlar yangilikni o'chira oladi");
+      return;
+    }
+    if (!confirm("Bu yangilikni o'chirishni xohlaysizmi?")) return;
+    try {
+      await deleteNews(id);
+      await loadNews();
+    } catch (error) {
+      console.error("Yangilikni o'chirishda xatolik:");
+      alert("Yangilikni o'chirishda xatolik yuz berdi");
+    }
+  };
+
+  const openEditModal = (news: NewsItem) => {
+    setEditingNews(news);
+    setFormData({
+      description: news.description,
+      photo: news.photo || ""
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#0b0f14] text-white">
-      <div className="pointer-events-none fixed inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 _h-[520px] _w-[520px] rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="absolute -bottom-48 -right-48 _h-[560px] _w-[560px] rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(16,185,129,0.08),transparent_55%),radial-gradient(ellipse_at_bottom,rgba(34,211,238,0.08),transparent_60%)]" />
-      </div>
+      {(showCreateModal || editingNews) && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-3xl border border-white/10 bg-[#0b0f14] p-6">
+            <h3 className="text-xl font-semibold mb-4">
+              {editingNews ? "Yangilikni tahrirlash" : "Yangi yangilik qo'shish"}
+            </h3>
+            <form onSubmit={editingNews ? handleUpdateNews : handleCreateNews}>
+              <div className="mb-4">
+                <label className="block text-sm text-white/70 mb-2">
+                  Sarlavha va matn
+                </label>
+                <textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-400/50"
+                  rows={6}
+                  placeholder="Yangilik matnini kiriting..."
+                  required
+                />
+              </div>
+              <div className="mb-6">
+                <label className="block text-sm text-white/70 mb-2">
+                  Rasm URL
+                </label>
+                <input
+                  type="text"
+                  value={formData.photo}
+                  onChange={(e) => setFormData({ ...formData, photo: e.target.value })}
+                  className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-400/50"
+                  placeholder="https://example.com/image.jpg"
+                />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setEditingNews(null);
+                    setFormData({ description: "", photo: "" });
+                  }}
+                  className="px-5 py-2.5 rounded-xl border border-white/10 hover:bg-white/10 transition"
+                >
+                  Bekor qilish
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-400/30 text-emerald-200 hover:bg-emerald-500/30 transition"
+                >
+                  {editingNews ? "Saqlash" : "Qo'shish"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {isAuthenticated && (
+        <section className="relative z-10 mx-auto max-w-6xl px-4 pt-6">
+          <div className="rounded-3xl border border-emerald-400/20 bg-emerald-400/5 backdrop-blur p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                <h3 className="text-sm font-medium text-emerald-300">Admin panel</h3>
+              </div>
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 rounded-xl bg-emerald-500/20 px-4 py-2 text-sm text-emerald-200 hover:bg-emerald-500/30 transition border border-emerald-400/30"
+              >
+                <span>+</span>
+                Yangilik qo'shish
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
       <section className="relative z-10">
         <div className="mx-auto max-w-6xl px-4 pt-8 pb-6">
           <div className="rounded-3xl border border-white/10 bg-white/5 backdrop-blur overflow-hidden">
@@ -65,7 +200,7 @@ export default function Home() {
                 <div className="text-xs text-white/50">Oxirgi yangilik</div>
                 <div className="mt-1 text-sm text-white/80">
                   {sortedNews[0]?.created_date
-                    ? new Date(sortedNews[0].created_date).toLocaleString()
+                    ? new Date(sortedNews[0].created_date).toLocaleString("uz-UZ")
                     : "—"}
                 </div>
               </div>
@@ -99,45 +234,59 @@ export default function Home() {
             </div>
             <div className="text-lg font-semibold">Hozircha yangiliklar yo‘q</div>
             <p className="mt-2 text-sm text-white/60">
-              Yangi post qo‘shilganda shu yerda ko‘rinadi.
+              {isAuthenticated 
+                ? "Yangi post qo'shish uchun admin paneldan foydalaning"
+                : "Yangi post qo‘shilganda shu yerda ko‘rinadi"}
             </p>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {sortedNews.map((n) => {
-              const title =
-                n.description?.split(".")[0]?.trim() || "Yangilik";
-              const dateLabel = new Date(n.created_date).toLocaleString();
-
+              const title = n.description?.split(".")[0]?.trim() || "Yangilik";
+              const dateLabel = new Date(n.created_date).toLocaleString("uz-UZ");
               return (
                 <article
                   key={n.id}
-                  className="group relative rounded-3xl border border-white/10 bg-white/5 backdrop-blur p-5 transition
-                             hover:border-emerald-400/25 hover:bg-white/[0.07]"
+                  className="group relative rounded-3xl border border-white/10 bg-white/5 backdrop-blur p-5 transition hover:border-emerald-400/25 hover:bg-white/[0.07]"
                 >
+                  {isAuthenticated && (
+                    <div className="absolute top-3 right-3 z-20 flex gap-2">
+                      <button
+                        onClick={() => openEditModal(n)}
+                        className="rounded-lg bg-blue-500/20 p-2 text-blue-200 hover:bg-blue-500/30 transition border border-blue-400/30 backdrop-blur"
+                        title="Tahrirlash"
+                      >
+                        ✎
+                      </button>
+                      <button
+                        onClick={() => handleDeleteNews(n.id)}
+                        className="rounded-lg bg-red-500/20 p-2 text-red-200 hover:bg-red-500/30 transition border border-red-400/30 backdrop-blur"
+                        title="O'chirish"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  )}
                   <div className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition group-hover:opacity-100">
                     <div className="absolute inset-0 rounded-3xl ring-1 ring-emerald-400/15" />
-                    <div className="absolute -inset-px rounded-3xl _bg-gradient-to-br from-emerald-400/10 to-cyan-400/10 blur-xl" />
+                    <div className="absolute -inset-px rounded-3xl bg-linear-to-br from-emerald-400/10 to-cyan-400/10 blur-xl" />
                   </div>
                   {n.photo ? (
                     <img
                       src={n.photo}
-                      alt="news"
+                      alt={title}
                       className="relative z-10 w-full h-40 object-cover rounded-2xl mb-4 border border-white/10"
                       loading="lazy"
                     />
                   ) : (
                     <div className="relative z-10 w-full h-40 rounded-2xl mb-4 border border-white/10 bg-[linear-gradient(135deg,rgba(16,185,129,0.15),rgba(34,211,238,0.10),rgba(255,255,255,0.03))]" />
                   )}
-
-                  <h3 className="relative z-10 text-lg font-semibold leading-snug">
+                  <h3 className="relative z-10 text-lg font-semibold leading-snug line-clamp-2">
                     {title}
                   </h3>
-
                   <p className="relative z-10 mt-2 text-sm text-white/65 line-clamp-4">
                     {n.description}
                   </p>
-
                   <div className="relative z-10 mt-4 flex items-center justify-between text-xs">
                     <span className="text-white/45">{dateLabel}</span>
                     <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-2 py-1 text-emerald-200">
@@ -151,11 +300,11 @@ export default function Home() {
         )}
         <footer className="mt-12 border-t border-white/10 pt-6 text-sm text-white/50">
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>© {new Date().getFullYear()} TechSchoolInfo</div>
+            <div>© {new Date().getFullYear()} Texnikum Yangiliklari</div>
             <div className="flex gap-4">
-              <a className="hover:text-white transition" href="#">Contact</a>
-              <a className="hover:text-white transition" href="#">Privacy</a>
-              <a className="hover:text-white transition" href="#">Support</a>
+              <a className="hover:text-white transition" href="#">Aloqa</a>
+              <a className="hover:text-white transition" href="#">Maxfiylik</a>
+              <a className="hover:text-white transition" href="#">Yordam</a>
             </div>
           </div>
         </footer>

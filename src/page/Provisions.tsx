@@ -21,7 +21,6 @@ export default function Provisions() {
         <h2 className="mt-3 text-2xl font-semibold">Texnikum yetishganlari</h2>
         <p className="mt-1 text-sm text-white/60">Deficiency / kerakli resurslar</p>
       </div>
-
       {loading ? (
         <div className="mt-6 text-white/60">Yuklanmoqda...</div>
       ) : items.length === 0 ? (

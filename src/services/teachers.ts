@@ -1,13 +1,22 @@
-import { axiosInstance } from "../api/api";
+import { publicApi, privateApi } from "../api/api";
 
-export const getTeachers = () =>
-  axiosInstance.get("/owner/teachers");
+export interface Teacher {
+  id: number;
+  full_name: string;
+  position: string;
+  photo?: string;
+  description?: string;
+  created_date: string;
+}
 
-export const createTeacher = (data: any) =>
-  axiosInstance.post("/owner/teachers", data);
+export const getTeachers = () => 
+  publicApi.get<Teacher[]>("/owner/teachers");
 
-export const updateTeacher = (id: number, data: any) =>
-  axiosInstance.patch(`/owner/teachers/${id}`, data);
+export const createTeacher = (data: FormData | any) =>
+  privateApi.post("/owner/teachers", data);
+
+export const updateTeacher = (id: number, data: FormData | any) =>
+  privateApi.patch(`/owner/teachers/${id}`, data);
 
 export const deleteTeacher = (id: number) =>
-  axiosInstance.delete(`/owner/teachers/${id}`);
+  privateApi.delete(`/owner/teachers/${id}`);

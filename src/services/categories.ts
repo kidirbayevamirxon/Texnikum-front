@@ -1,15 +1,20 @@
-import { axiosInstance } from "../api/api";
+import { publicApi, privateApi } from "../api/api";
 
-export const getCategories = () =>
-  axiosInstance.get("/owner/categories");
+export interface Category {
+  id: number;
+  name: string;
+  description?: string;
+  created_date: string;
+}
 
-export const createCategory = (data: any) =>
-  axiosInstance.post("ownercreate_categories", data);
+export const getCategories = () => 
+  publicApi.get<Category[]>("/owner/categories");
 
-export const updateCategory = (id: number, data: any) =>
-  axiosInstance.patch(`/owner/categories/${id}`, data);
+export const createCategory = (data: { name: string; description?: string }) =>
+  privateApi.post<Category>("/owner/categories", data);
+
+export const updateCategory = (id: number, data: { name?: string; description?: string }) =>
+  privateApi.patch<Category>(`/owner/categories/${id}`, data);
 
 export const deleteCategory = (id: number) =>
-  axiosInstance.delete(`/owner/categories/${id}`);
-
-
+  privateApi.delete(`/owner/categories/${id}`);

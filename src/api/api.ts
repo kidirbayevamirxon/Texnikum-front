@@ -2,7 +2,8 @@ import axios from "axios";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-export const axiosInstance = axios.create({
+// PUBLIC API - hech qanday token talab qilmaydi
+export const publicApi = axios.create({
   baseURL: BASE_URL,
   headers: {
     "Content-Type": "application/json",
@@ -10,54 +11,36 @@ export const axiosInstance = axios.create({
   },
 });
 
-axiosInstance.interceptors.request.use(
+// PRIVATE API - faqat token bilan ishlaydi
+export const privateApi = axios.create({
+  baseURL: BASE_URL,
+  headers: {
+    "Content-Type": "application/json",
+    "ngrok-skip-browser-warning": "true",
+  },
+});
+
+// Private API ga token qo'shish
+privateApi.interceptors.request.use(
   (config) => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      config.headers["Authorization"] = `Bearer ${accessToken}`;
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-axiosInstance.interceptors.response.use(
-  (response) => response, 
+// 401 xatolik - token eskirgan
+privateApi.interceptors.response.use(
+  (response) => response,
   async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response && error.response.status === 401 && !originalRequest._retry) {
-      console.log("401 xatolik aniqlangan, tokenni yangilashga urinish...");
-      originalRequest._retry = true;
-
-      try {
-        const refreshToken = localStorage.getItem("refreshToken");
-        if (!refreshToken) throw new Error("Refresh token topilmadi");
-
-        const response = await axios.post(`${BASE_URL}/auth/refresh`, { refreshToken });
-
-        const accessToken = response.data.accessToken;
-        localStorage.setItem("accessToken", accessToken);
-
-        axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-
-        return axiosInstance(originalRequest);
-      } catch (refreshError) {
-        console.error("Token yangilash xatolik:", refreshError);
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        window.location.href = "/login";
-        return Promise.reject(refreshError);
-      }
+    if (error.response?.status === 401) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("refresh_token");
+      window.location.href = "/login";
     }
-
     return Promise.reject(error);
   }
 );
-
-export function logoutUser() {
-  console.log("Foydalanuvchi tizimdan chiqmoqda...");
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-  window.location.replace("/login");
-}
