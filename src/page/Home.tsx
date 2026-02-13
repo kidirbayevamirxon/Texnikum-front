@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { getNews, createNews, updateNews, deleteNews } from "../services/news";
 import type { NewsItem } from "../services/news";
+import { uploadFiles } from "../services/upload";
+import { UPLOADS_BASE_URL } from "../api/config";
+
 export default function Home() {
   const [news, setNews] = useState<NewsItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editingNews, setEditingNews] = useState<NewsItem | null>(null);
-  const [formData, setFormData] = useState({ description: "", photo: "" });
+  const [formData, setFormData] = useState({
+    description: "",
+    photo: [] as string[],
+  });
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -31,7 +37,7 @@ export default function Home() {
 
   const sortedNews = useMemo(() => {
     return [...news].sort(
-      (a, b) => +new Date(b.created_date) - +new Date(a.created_date)
+      (a, b) => +new Date(b.created_date) - +new Date(a.created_date),
     );
   }, [news]);
 
@@ -46,7 +52,7 @@ export default function Home() {
       await createNews(formData);
       await loadNews();
       setShowCreateModal(false);
-      setFormData({ description: "", photo: "" });
+      setFormData({ description: "", photo: [] });
     } catch (error) {
       alert("Yangilik qo'shishda xatolik yuz berdi");
     }
@@ -60,7 +66,7 @@ export default function Home() {
       await updateNews(editingNews.id, formData);
       await loadNews();
       setEditingNews(null);
-      setFormData({ description: "", photo: "" });
+      setFormData({ description: "", photo: [] });
     } catch (error) {
       console.error("Yangilikni tahrirlashda xatolik:");
       alert("Yangilikni tahrirlashda xatolik yuz berdi");
@@ -86,8 +92,25 @@ export default function Home() {
     setEditingNews(news);
     setFormData({
       description: news.description,
-      photo: news.photo || ""
+      photo: news.photo || [],
     });
+  };
+
+  const handleUpload = async (files: File[]) => {
+    try {
+      const uploaded = await uploadFiles(files, "news");
+
+      const urls = Array.isArray(uploaded) ? uploaded : [uploaded];
+
+      const fullUrls = urls.map((u) => `news/${u}`);
+
+      setFormData((prev) => ({
+        ...prev,
+        photo: [...prev.photo, ...fullUrls],
+      }));
+    } catch {
+      alert("Rasm yuklashda xatolik");
+    }
   };
 
   return (
@@ -96,7 +119,9 @@ export default function Home() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
           <div className="w-full max-w-2xl rounded-3xl border border-white/10 bg-[#0b0f14] p-6">
             <h3 className="text-xl font-semibold mb-4">
-              {editingNews ? "Yangilikni tahrirlash" : "Yangi yangilik qo'shish"}
+              {editingNews
+                ? "Yangilikni tahrirlash"
+                : "Yangi yangilik qo'shish"}
             </h3>
             <form onSubmit={editingNews ? handleUpdateNews : handleCreateNews}>
               <div className="mb-4">
@@ -105,24 +130,30 @@ export default function Home() {
                 </label>
                 <textarea
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
                   className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-400/50"
                   rows={6}
                   placeholder="Yangilik matnini kiriting..."
                   required
                 />
-              </div>
-              <div className="mb-6">
-                <label className="block text-sm text-white/70 mb-2">
-                  Rasm URL
-                </label>
-                <input
-                  type="text"
-                  value={formData.photo}
-                  onChange={(e) => setFormData({ ...formData, photo: e.target.value })}
-                  className="w-full px-4 py-3 rounded-2xl border border-white/10 bg-white/5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-400/50"
-                  placeholder="https://example.com/image.jpg"
-                />
+                <div className="mb-6">
+                  <label className="block text-sm text-white/70 mb-2">
+                    Rasmlar
+                  </label>
+
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (!e.target.files) return;
+                      handleUpload(Array.from(e.target.files));
+                    }}
+                    className="block w-full text-sm"
+                  />
+                </div>
               </div>
               <div className="flex gap-3 justify-end">
                 <button
@@ -130,7 +161,7 @@ export default function Home() {
                   onClick={() => {
                     setShowCreateModal(false);
                     setEditingNews(null);
-                    setFormData({ description: "", photo: "" });
+                    setFormData({ description: "", photo: [] });
                   }}
                   className="px-5 py-2.5 rounded-xl border border-white/10 hover:bg-white/10 transition"
                 >
@@ -153,7 +184,9 @@ export default function Home() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-                <h3 className="text-sm font-medium text-emerald-300">Admin panel</h3>
+                <h3 className="text-sm font-medium text-emerald-300">
+                  Admin panel
+                </h3>
               </div>
               <button
                 onClick={() => setShowCreateModal(true)}
@@ -200,7 +233,9 @@ export default function Home() {
                 <div className="text-xs text-white/50">Oxirgi yangilik</div>
                 <div className="mt-1 text-sm text-white/80">
                   {sortedNews[0]?.created_date
-                    ? new Date(sortedNews[0].created_date).toLocaleString("uz-UZ")
+                    ? new Date(sortedNews[0].created_date).toLocaleString(
+                        "uz-UZ",
+                      )
                     : "—"}
                 </div>
               </div>
@@ -232,9 +267,11 @@ export default function Home() {
             <div className="mx-auto mb-3 h-12 w-12 rounded-2xl bg-white/10 grid place-items-center">
               <span className="text-white/60">📰</span>
             </div>
-            <div className="text-lg font-semibold">Hozircha yangiliklar yo‘q</div>
+            <div className="text-lg font-semibold">
+              Hozircha yangiliklar yo‘q
+            </div>
             <p className="mt-2 text-sm text-white/60">
-              {isAuthenticated 
+              {isAuthenticated
                 ? "Yangi post qo'shish uchun admin paneldan foydalaning"
                 : "Yangi post qo‘shilganda shu yerda ko‘rinadi"}
             </p>
@@ -243,7 +280,9 @@ export default function Home() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {sortedNews.map((n) => {
               const title = n.description?.split(".")[0]?.trim() || "Yangilik";
-              const dateLabel = new Date(n.created_date).toLocaleString("uz-UZ");
+              const dateLabel = new Date(n.created_date).toLocaleString(
+                "uz-UZ",
+              );
               return (
                 <article
                   key={n.id}
@@ -271,9 +310,9 @@ export default function Home() {
                     <div className="absolute inset-0 rounded-3xl ring-1 ring-emerald-400/15" />
                     <div className="absolute -inset-px rounded-3xl bg-linear-to-br from-emerald-400/10 to-cyan-400/10 blur-xl" />
                   </div>
-                  {n.photo ? (
+                  {n.photo?.[0] ? (
                     <img
-                      src={n.photo}
+                      src={`${UPLOADS_BASE_URL}/${n.photo[0]}`}
                       alt={title}
                       className="relative z-10 w-full h-40 object-cover rounded-2xl mb-4 border border-white/10"
                       loading="lazy"
@@ -281,6 +320,7 @@ export default function Home() {
                   ) : (
                     <div className="relative z-10 w-full h-40 rounded-2xl mb-4 border border-white/10 bg-[linear-gradient(135deg,rgba(16,185,129,0.15),rgba(34,211,238,0.10),rgba(255,255,255,0.03))]" />
                   )}
+
                   <h3 className="relative z-10 text-lg font-semibold leading-snug line-clamp-2">
                     {title}
                   </h3>
@@ -302,9 +342,15 @@ export default function Home() {
           <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>© {new Date().getFullYear()} Texnikum Yangiliklari</div>
             <div className="flex gap-4">
-              <a className="hover:text-white transition" href="#">Aloqa</a>
-              <a className="hover:text-white transition" href="#">Maxfiylik</a>
-              <a className="hover:text-white transition" href="#">Yordam</a>
+              <a className="hover:text-white transition" href="#">
+                Aloqa
+              </a>
+              <a className="hover:text-white transition" href="#">
+                Maxfiylik
+              </a>
+              <a className="hover:text-white transition" href="#">
+                Yordam
+              </a>
             </div>
           </div>
         </footer>

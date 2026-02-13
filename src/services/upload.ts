@@ -1,12 +1,22 @@
 import { privateApi } from "../api/api";
 
-export const uploadTeacherPhoto = (file: File) => {
+export const uploadFiles = async (
+  files: File[],
+  folder: "teachers" | "news" | "deficiency"
+) => {
   const formData = new FormData();
-  formData.append("file", file);
 
-  return privateApi.post("/upload/teacher-photo", formData, {
+  formData.append("folder", folder);
+
+  files.forEach((file) => {
+    formData.append("files", file);
+  });
+
+  const res = await privateApi.post("/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
   });
+
+  return res.data;
 };
