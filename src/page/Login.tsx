@@ -17,15 +17,16 @@ export default function Login() {
     try {
       const res = await loginRequest({ login: loginValue, password });
       localStorage.setItem("access_token", res.data.access_token);
-      if (res.data.refresh_token) localStorage.setItem("refresh_token", res.data.refresh_token);
+      if (res.data.refresh_token)
+        localStorage.setItem("refresh_token", res.data.refresh_token);
       navigate("/");
     } finally {
       setLoading(false);
     }
   };
-useEffect(() => {
-  if (hasToken()) navigate("/");
-}, [navigate]);
+  useEffect(() => {
+    if (hasToken()) navigate("/");
+  }, [navigate]);
   return (
     <div className="min-h-screen bg-[#0b0f14] text-white relative">
       <div className="ts-bg">
@@ -40,7 +41,9 @@ useEffect(() => {
             Admin Login
           </div>
           <h2 className="mt-3 text-2xl font-semibold">Kirish</h2>
-          <p className="mt-1 text-sm text-white/60">Portalga kirish uchun ma’lumotlarni kiriting</p>
+          <p className="mt-1 text-sm text-white/60">
+            Portalga kirish uchun ma’lumotlarni kiriting
+          </p>
           <div className="mt-6 space-y-3">
             <input
               className="ts-input"
@@ -58,11 +61,39 @@ useEffect(() => {
           </div>
           <button
             type="submit"
-            className="mt-5 w-full rounded-xl _bg-gradient-to-r from-emerald-500/80 to-cyan-500/70 px-4 py-3 text-sm font-semibold
-                       hover:opacity-95 transition"
+            className={`w-full mt-4 flex items-center justify-center gap-2 rounded-xl 
+    bg-emerald-500/20 px-4 py-2 text-sm font-medium 
+    text-emerald-200 hover:bg-emerald-500/30 transition 
+    border border-emerald-400/30 disabled:opacity-50 disabled:cursor-not-allowed`}
             disabled={loading}
           >
-            {loading ? "Yuklanmoqda..." : "Kirish"}
+            {loading ? (
+              <span className="flex items-center gap-2">
+                <svg
+                  className="animate-spin h-4 w-4 text-emerald-200"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
+                </svg>
+                Yuklanmoqda...
+              </span>
+            ) : (
+              "Kirish"
+            )}
           </button>
         </form>
       </div>

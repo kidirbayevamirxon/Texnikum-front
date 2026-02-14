@@ -15,7 +15,7 @@ export default function Faculties() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState<Category | null>(null);
-  const [formData, setFormData] = useState({ name: "", description: "" });
+  const [formData, setFormData] = useState({ name: ""});
 
   useEffect(() => {
     setIsAdmin(isAuthenticated());
@@ -44,7 +44,7 @@ export default function Faculties() {
       await createCategory(formData);
       await loadCategories();
       setShowModal(false);
-      setFormData({ name: "", description: "" });
+      setFormData({ name: ""});
     } catch (error) {
       console.error("Fakultet qo'shishda xatolik:");
       alert("Fakultet qo'shishda xatolik yuz berdi");
@@ -59,7 +59,7 @@ export default function Faculties() {
       await updateCategory(editingItem.id, formData);
       await loadCategories();
       setEditingItem(null);
-      setFormData({ name: "", description: "" });
+      setFormData({ name: ""});
     } catch (error) {
       console.error("Fakultetni tahrirlashda xatolik:");
       alert("Fakultetni tahrirlashda xatolik yuz berdi");
@@ -85,7 +85,7 @@ export default function Faculties() {
     setEditingItem(item);
     setFormData({
       name: item.name,
-      description: item.description || ""
+      // description: item.description || ""
     });
   };
 
@@ -111,7 +111,7 @@ export default function Faculties() {
                   required
                 />
               </div>
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <label className="block text-sm text-white/70 mb-2">
                   Qisqacha ma'lumot (ixtiyoriy)
                 </label>
@@ -122,14 +122,14 @@ export default function Faculties() {
                   rows={4}
                   placeholder="Fakultet haqida qisqacha..."
                 />
-              </div>
+              </div> */}
               <div className="flex gap-3 justify-end">
                 <button
                   type="button"
                   onClick={() => {
                     setShowModal(false);
                     setEditingItem(null);
-                    setFormData({ name: "", description: "" });
+                    setFormData({ name: ""});
                   }}
                   className="px-5 py-2.5 rounded-xl border border-white/10 hover:bg-white/10 transition"
                 >
@@ -150,7 +150,7 @@ export default function Faculties() {
         <div>
           <div className="ts-chip">
             <span className="h-2 w-2 rounded-full bg-emerald-400" />
-            Facilities Offered
+            Taklif etilayotgan qulayliklar
           </div>
           <h2 className="mt-3 text-2xl font-semibold">Fakultetlar</h2>
           <p className="mt-1 text-sm text-white/60">Yo‘nalishlar ro‘yxati</p>
@@ -213,9 +213,9 @@ export default function Faculties() {
               <div className="text-lg font-semibold pr-16 line-clamp-2">
                 {f.name}
               </div>
-              <div className="mt-2 text-sm text-white/60 line-clamp-3 min-h-15">
+              {/* <div className="mt-2 text-sm text-white/60 line-clamp-3 min-h-15">
                 {f.description || "Bu fakultet bo‘yicha qisqacha ma’lumot."}
-              </div>
+              </div> */}
               <div className="mt-4 flex items-center justify-between text-xs">
                 <span className="text-white/45">
                   {new Date(f.created_date).toLocaleDateString("uz-UZ")}

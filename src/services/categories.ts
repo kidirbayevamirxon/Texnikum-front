@@ -11,7 +11,7 @@ export const getCategories = () =>
   publicApi.get<Category[]>("/owner/categories");
 
 export const createCategory = (data: { name: string; description?: string }) =>
-  privateApi.post<Category>("/owner/categories", data);
+  privateApi.post<Category>("/owner/create_categories", data);
 
 export const updateCategory = (id: number, data: { name?: string; description?: string }) =>
   privateApi.patch<Category>(`/owner/categories/${id}`, data);

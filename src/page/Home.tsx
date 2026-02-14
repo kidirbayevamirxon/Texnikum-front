@@ -96,22 +96,27 @@ export default function Home() {
     });
   };
 
-  const handleUpload = async (files: File[]) => {
-    try {
-      const uploaded = await uploadFiles(files, "news");
-
-      const urls = Array.isArray(uploaded) ? uploaded : [uploaded];
-
-      const fullUrls = urls.map((u) => `news/${u}`);
-
-      setFormData((prev) => ({
-        ...prev,
-        photo: [...prev.photo, ...fullUrls],
-      }));
-    } catch {
-      alert("Rasm yuklashda xatolik");
+const handleUpload = async (files: File[]) => {
+  try {
+    const uploaded = await uploadFiles(files, "news");
+    let urls: string[] = [];
+    if (Array.isArray(uploaded)) {
+      urls = uploaded.map((item: any) =>
+        typeof item === "string" ? item : item.file_url || item.url
+      );
+    } else if (uploaded.files) {
+      urls = uploaded.files;
     }
-  };
+    setFormData((prev) => ({
+      ...prev,
+      photo: [...prev.photo, ...urls],
+    }));
+  } catch (err) {
+    console.error(err);
+    alert("Rasm yuklashda xatolik");
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-[#0b0f14] text-white">
@@ -142,7 +147,6 @@ export default function Home() {
                   <label className="block text-sm text-white/70 mb-2">
                     Rasmlar
                   </label>
-
                   <input
                     type="file"
                     multiple
@@ -151,7 +155,7 @@ export default function Home() {
                       if (!e.target.files) return;
                       handleUpload(Array.from(e.target.files));
                     }}
-                    className="block w-full text-sm"
+                  className="w-full px-4 py-3 rounded-2xl border-emerald-400/30 bg-white/5 text-sm file:text-emerald-200 file:bg-emerald-500/20 file:px-3 file:py-1 file:rounded-lg file:border-none file:cursor-pointer hover:file:bg-emerald-500/30 transition"
                   />
                 </div>
               </div>
@@ -312,7 +316,7 @@ export default function Home() {
                   </div>
                   {n.photo?.[0] ? (
                     <img
-                      src={`${UPLOADS_BASE_URL}/${n.photo[0]}`}
+                      src={`${UPLOADS_BASE_URL}${n.photo[0]}`}
                       alt={title}
                       className="relative z-10 w-full h-40 object-cover rounded-2xl mb-4 border border-white/10"
                       loading="lazy"
@@ -338,22 +342,7 @@ export default function Home() {
             })}
           </div>
         )}
-        <footer className="mt-12 border-t border-white/10 pt-6 text-sm text-white/50">
-          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-            <div>© {new Date().getFullYear()} Texnikum Yangiliklari</div>
-            <div className="flex gap-4">
-              <a className="hover:text-white transition" href="#">
-                Aloqa
-              </a>
-              <a className="hover:text-white transition" href="#">
-                Maxfiylik
-              </a>
-              <a className="hover:text-white transition" href="#">
-                Yordam
-              </a>
-            </div>
-          </div>
-        </footer>
+        
       </main>
     </div>
   );

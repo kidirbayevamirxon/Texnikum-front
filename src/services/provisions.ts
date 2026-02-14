@@ -11,7 +11,7 @@ export const getProvisions = () =>
   publicApi.get<Provision[]>("/owner/deficiency");
 
 export const createProvision = (data: { title: string; description?: string }) =>
-  privateApi.post("/owner/deficiency", data);
+  privateApi.post("/owner/create_deficiency", data);
 
 export const updateProvision = (id: number, data: { title?: string; description?: string }) =>
   privateApi.patch(`/owner/deficiency/${id}`, data);
