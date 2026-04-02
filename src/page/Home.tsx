@@ -14,7 +14,9 @@ export default function Home() {
     description: "",
     photo: [] as string[],
   });
-
+  const texnikumHistory = `Qoʻngʻirot sanoat texnikumi 2020-yili avvalgi 2008-yili tashkil qilingan Qoʻngʻirot neft va gaz sanoati kasb-hunar kolledji negizida Qo’ng’irot sanoat texnikumi bo’lib tashkillashtirildi.  2025-yil yanvar oyidan boshlab O'zbekiston Respublikasi Prezidentining 2024-yil 16-oktabrdagi PF-158-sonli "Kasbiy ta’limda malakali kadrlar tayyorlash tizimini yanada takomillashtirish va xalqaro ta’lim dasturlarini joriy qilish choar-tadbirlari to'g'risida" gi Farmoniga muvofiq Qo’ng’irot sanoat texnikumi bo’lib qayta nomlandi.
+2026-yil yanvar oyidan boshlab O'zbekiston Respublikasi Prezidentining                2025-yil 23-oktyabrdagi PF-190-sonli "Kasbiy ta’lim tizimida boshqaruv samaradorligini oshirish chora-tadbirlari to'g'risida" gi Farmoniga muvofiq Qoʻng’irot tuman 2-son texnikumi deb qayta nomlandi.
+Qoʻng’irot sanoat texnikumi quvvati 540 o’rinli 100 oʻquvchilar uchun mo’ljallangan o’quvchilar turar joyi, amaliyot ustaxonasi, fizika va kimyo laboratoriyalari xonasi, 2 ta kompyuter xonasi, majlislar zali, kutubxona va sport zaliga ega.`;
   useEffect(() => {
     const token = localStorage.getItem("access_token");
     setIsAuthenticated(!!token);
@@ -96,27 +98,26 @@ export default function Home() {
     });
   };
 
-const handleUpload = async (files: File[]) => {
-  try {
-    const uploaded = await uploadFiles(files, "news");
-    let urls: string[] = [];
-    if (Array.isArray(uploaded)) {
-      urls = uploaded.map((item: any) =>
-        typeof item === "string" ? item : item.file_url || item.url
-      );
-    } else if (uploaded.files) {
-      urls = uploaded.files;
+  const handleUpload = async (files: File[]) => {
+    try {
+      const uploaded = await uploadFiles(files, "news");
+      let urls: string[] = [];
+      if (Array.isArray(uploaded)) {
+        urls = uploaded.map((item: any) =>
+          typeof item === "string" ? item : item.file_url || item.url,
+        );
+      } else if (uploaded.files) {
+        urls = uploaded.files;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        photo: [...prev.photo, ...urls],
+      }));
+    } catch (err) {
+      console.error(err);
+      alert("Rasm yuklashda xatolik");
     }
-    setFormData((prev) => ({
-      ...prev,
-      photo: [...prev.photo, ...urls],
-    }));
-  } catch (err) {
-    console.error(err);
-    alert("Rasm yuklashda xatolik");
-  }
-};
-
+  };
 
   return (
     <div className="min-h-screen bg-[#0b0f14] text-white">
@@ -155,7 +156,7 @@ const handleUpload = async (files: File[]) => {
                       if (!e.target.files) return;
                       handleUpload(Array.from(e.target.files));
                     }}
-                  className="w-full px-4 py-3 rounded-2xl border-emerald-400/30 bg-white/5 text-sm file:text-emerald-200 file:bg-emerald-500/20 file:px-3 file:py-1 file:rounded-lg file:border-none file:cursor-pointer hover:file:bg-emerald-500/30 transition"
+                    className="w-full px-4 py-3 rounded-2xl border-emerald-400/30 bg-white/5 text-sm file:text-emerald-200 file:bg-emerald-500/20 file:px-3 file:py-1 file:rounded-lg file:border-none file:cursor-pointer hover:file:bg-emerald-500/30 transition"
                   />
                 </div>
               </div>
@@ -246,6 +247,12 @@ const handleUpload = async (files: File[]) => {
             </div>
           </div>
         </div>
+      </section>
+      <section className="mt-10 rounded-3xl border border-white/10 bg-white/5 p-6 backdrop-blur">
+        <h2 className="text-2xl font-semibold mb-4 text-emerald-300">
+          Texnikum tarixi
+        </h2>
+        <p className="text-white/70 leading-relaxed">{texnikumHistory}</p>
       </section>
       <main className="relative z-10 mx-auto max-w-6xl px-4 pb-14">
         {loading ? (
@@ -342,7 +349,6 @@ const handleUpload = async (files: File[]) => {
             })}
           </div>
         )}
-        
       </main>
     </div>
   );
