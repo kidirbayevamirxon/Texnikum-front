@@ -2,19 +2,29 @@ import { publicApi, privateApi } from "../api/api";
 
 export interface Provision {
   id: number;
-  title: string;
-  description?: string;
+  title?: string;
+  description: string;
+  photo?: string[];
   created_date: string;
 }
 
-export const getProvisions = () => 
+export const getProvisions = () =>
   publicApi.get<Provision[]>("/owner/deficiency");
 
-export const createProvision = (data: { title: string; description?: string }) =>
-  privateApi.post("/owner/create_deficiency", data);
+export const createProvision = (data: {
+  title?: string;
+  description?: string;
+  photo?: string[];
+}) => privateApi.post("/owner/create_deficiency", data);
 
-export const updateProvision = (id: number, data: { title?: string; description?: string }) =>
-  privateApi.patch(`/owner/deficiency/${id}`, data);
+export const updateProvision = (
+  id: number,
+  data: {
+    title?: string;
+    description?: string;
+    photo?: string[];
+  }
+) => privateApi.patch(`/owner/deficiency/${id}`, data);
 
 export const deleteProvision = (id: number) =>
   privateApi.delete(`/owner/deficiency/${id}`);

@@ -1,10 +1,21 @@
 import { publicApi } from "../api/api";
 
-export const login = (data: { login: string; password: string }) =>
-  publicApi.post("/auth/login", data);
+export interface LoginPayload {
+  login: string;
+  password: string;
+}
+
+export interface LoginResponse {
+  access_token: string;
+  refresh_token: string;
+}
+
+export const login = (data: LoginPayload) =>
+  publicApi.post<LoginResponse>("/auth/login", data);
 
 export const logout = () => {
   localStorage.removeItem("access_token");
+  localStorage.removeItem("refresh_token");
   localStorage.removeItem("refres_token");
   window.location.href = "/";
 };

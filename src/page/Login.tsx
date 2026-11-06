@@ -1,32 +1,55 @@
-import { useState } from "react";
+import { isAxiosError } from "axios";
+import { useState, useEffect } from "react";
 import { login as loginRequest } from "../services/auth";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 import { hasToken } from "../utils/auth";
 
 export default function Login() {
   const [loginValue, setLoginValue] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (hasToken()) navigate("/");
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+
+    if (!loginValue.trim() || !password.trim()) {
+      setErrorMessage("Login va parolni kiriting");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await loginRequest({ login: loginValue, password });
+      const res = await loginRequest({ login: loginValue.trim(), password });
       localStorage.setItem("access_token", res.data.access_token);
-      if (res.data.refresh_token)
+      if (res.data.refresh_token) {
         localStorage.setItem("refresh_token", res.data.refresh_token);
+      }
       navigate("/");
+    } catch (err: unknown) {
+      console.error("Login xatosi:", err);
+      const detail = isAxiosError<{ detail?: unknown }>(err)
+        ? err.response?.data?.detail
+        : undefined;
+      const msg = detail
+        ? typeof detail === "string"
+          ? detail
+          : JSON.stringify(detail) ??
+            "Login yoki parol noto‘g‘ri, yoki server bilan aloqa yo‘q"
+        : "Login yoki parol noto‘g‘ri, yoki server bilan aloqa yo‘q";
+      setErrorMessage(msg);
     } finally {
       setLoading(false);
     }
   };
-  useEffect(() => {
-    if (hasToken()) navigate("/");
-  }, [navigate]);
+
   return (
     <div className="min-h-screen bg-[#0b0f14] text-white relative">
       <div className="ts-bg">
@@ -44,12 +67,21 @@ export default function Login() {
           <p className="mt-1 text-sm text-white/60">
             Portalga kirish uchun ma’lumotlarni kiriting
           </p>
+
+          {errorMessage && (
+            <div className="mt-4 rounded-xl border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-300">
+              {errorMessage}
+            </div>
+          )}
+
           <div className="mt-6 space-y-3">
             <input
               className="ts-input"
               placeholder="Login"
               value={loginValue}
               onChange={(e) => setLoginValue(e.target.value)}
+              required
+              autoFocus
             />
             <input
               className="ts-input"
@@ -57,14 +89,15 @@ export default function Login() {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
           <button
             type="submit"
-            className={`w-full mt-4 flex items-center justify-center gap-2 rounded-xl 
-    bg-emerald-500/20 px-4 py-2 text-sm font-medium 
-    text-emerald-200 hover:bg-emerald-500/30 transition 
-    border border-emerald-400/30 disabled:opacity-50 disabled:cursor-not-allowed`}
+            className="w-full mt-4 flex items-center justify-center gap-2 rounded-xl 
+              bg-emerald-500/20 px-4 py-2 text-sm font-medium 
+              text-emerald-200 hover:bg-emerald-500/30 transition 
+              border border-emerald-400/30 disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={loading}
           >
             {loading ? (
